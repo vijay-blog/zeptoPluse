@@ -1,0 +1,2 @@
+import 'package:flutter/foundation.dart'; import '../models/address.dart';
+class AddressProvider extends ChangeNotifier {final List<Address> addresses=[]; Address? selected; void save(Address a){addresses.removeWhere((x)=>x.id==a.id&&a.id!=null);addresses.insert(0,a);selected=a;notifyListeners();} void select(Address a){selected=a;notifyListeners();} void delete(Address a){addresses.remove(a);if(selected==a)selected=null;notifyListeners();}}

@@ -1,0 +1,1 @@
+package com.quickcart.dto; public record AddressRequest(String fullName,String mobile,String house,String street,String area,String city,String state,String pincode,Double latitude,Double longitude,boolean isDefault){}

@@ -1,0 +1,1 @@
+package com.quickcart.dto; import java.util.*; public record OrderRequest(Long customerId,Long addressId,List<OrderItemRequest> items){}

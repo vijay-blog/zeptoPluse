@@ -1,0 +1,1 @@
+package com.quickcart.dto; public record OrderItemRequest(Long productId,int quantity){}

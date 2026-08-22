@@ -1,44 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'core/app_theme.dart';
 import 'providers/cart_provider.dart';
+import 'providers/catalog_provider.dart';
 import 'providers/order_provider.dart';
-import 'screens/home_screen.dart';
+import 'providers/address_provider.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
-      ],
-      child: const QuickCartApp(),
-    ),
-  );
+  runApp(const ZeptoPluseApp());
 }
 
-class QuickCartApp extends StatelessWidget {
-  const QuickCartApp({super.key});
-
+class ZeptoPluseApp extends StatelessWidget {
+  const ZeptoPluseApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'QuickCart',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF0B7A53),
-        scaffoldBackgroundColor: const Color(0xFFF7F8F7),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-        ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CatalogProvider()..load()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => AddressProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'ZeptoPluse',
+        theme: AppTheme.theme,
+        home: const SplashScreen(),
       ),
-      home: const HomeScreen(),
     );
   }
 }

@@ -13,7 +13,14 @@ abstract class ProductRepository {
 }
 
 abstract class OrderRepository {
-  Future<CustomerOrder> createOrder({required List<CartItem> items, required Address address, required double total});
+  Future<CustomerOrder> createOrder({
+    required List<CartItem> items,
+    required Address address,
+    double? subtotal,
+    double? deliveryFee,
+    double? discount,
+    required double total,
+  });
   Future<List<CustomerOrder>> getOrders();
   Future<CustomerOrder?> getOrderById(String orderId);
 }
@@ -24,12 +31,11 @@ abstract class AddressRepository {
   Future<void> deleteAddress(String id);
 }
 
-// Mock Implementation ready for future Spring Boot REST API
 class MockProductRepository implements ProductRepository {
   @override
   Future<List<CategoryItem>> getCategories() async {
     await Future.delayed(const Duration(milliseconds: 150));
-    return categories.map((e) => CategoryItem(name: e.$1, icon: e.$2)).toList();
+    return categories.map((e) => CategoryItem(name: e.name, icon: e.icon)).toList();
   }
 
   @override
@@ -37,33 +43,57 @@ class MockProductRepository implements ProductRepository {
     await Future.delayed(const Duration(milliseconds: 200));
     var list = products;
     if (categoryId != null && categoryId.isNotEmpty) {
-      list = list.where((p) => p.categoryId.toLowerCase() == categoryId.toLowerCase() || p.categoryName.toLowerCase() == categoryId.toLowerCase()).toList();
+      list = list.where((p) => p.categoryId.toLowerCase() == categoryId.toLowerCase()).toList();
     }
     if (search != null && search.isNotEmpty) {
       final q = search.toLowerCase();
       list = list.where((p) => p.name.toLowerCase().contains(q) || p.categoryName.toLowerCase().contains(q) || p.brand.toLowerCase().contains(q)).toList();
     }
-    return list;
+    if (sort != null && sort.isNotEmpty) {
+      switch (sort) {
+        case 'price_asc':
+          list = [...list]..sort((a, b) => a.sellingPrice.compareTo(b.sellingPrice));
+          break;
+        case 'price_desc':
+          list = [...list]..sort((a, b) => b.sellingPrice.compareTo(a.sellingPrice));
+          break;
+        case 'discount':
+          list = [...list]..sort((a, b) => b.discountPercent.compareTo(a.discountPercent));
+          break;
+        default:
+          list = [...list]..sort((a, b) => a.name.compareTo(b.name));
+      }
+    }
+    final start = (page - 1) * pageSize;
+    final end = start + pageSize;
+    return list.sublist(start < list.length ? start : list.length, end < list.length ? end : list.length);
   }
 
   @override
   Future<Product?> getProductById(String id) async {
     await Future.delayed(const Duration(milliseconds: 100));
-    try {
-      return products.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
-    }
+    return products.firstWhere((p) => p.id == id, orElse: () => const Product(
+      id: '',
+      name: 'Unavailable',
+      categoryId: 'other',
+      categoryName: 'Other',
+      brand: 'QuickCart',
+      description: '',
+      images: ['📦'],
+      mrp: 0,
+      sellingPrice: 0,
+      unit: '1 unit',
+    ));
   }
 
   @override
   Future<List<Product>> getProductsByCategory(String categoryId) async {
-    return getProducts(categoryId: categoryId);
+    return productsForCategory(categoryId);
   }
 
   @override
   Future<List<Product>> searchProducts(String query) async {
-    return getProducts(search: query);
+    return searchProducts(query);
   }
 }
 
@@ -77,28 +107,27 @@ class MockOrderRepository implements OrderRepository {
   final List<CustomerOrder> _orders = [];
 
   @override
-  Future<CustomerOrder> createOrder({required List<CartItem> items, required Address address, required double total}) async {
+  Future<CustomerOrder> createOrder({
+    required List<CartItem> items,
+    required Address address,
+    double? subtotal,
+    double? deliveryFee,
+    double? discount,
+    required double total,
+  }) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    final subtotal = items.fold(0.0, (sum, i) => sum + i.total);
-    final deliveryFee = subtotal >= 499 ? 0.0 : 39.0;
+    final orderTotal = total > 0 ? total : items.fold(0.0, (sum, i) => sum + i.total);
     final order = CustomerOrder(
-      id: 'QC${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}',
+      id: 'ZP${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}',
       createdAt: DateTime.now(),
       items: items.map((e) => CartItem(product: e.product, quantity: e.quantity)).toList(),
       address: address.fullAddress,
-      subtotal: subtotal,
-      deliveryFee: deliveryFee,
-      total: subtotal + deliveryFee,
-      status: OrderStatus.created,
-      subOrders: [
-        SubOrder(
-          id: 'SO-${DateTime.now().millisecondsSinceEpoch}',
-          orderId: 'QC${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}',
-          partnerId: 'PARTNER_HYD_01',
-          status: OrderStatus.created,
-          deliveryType: 'SMALL',
-        ),
-      ],
+      subtotal: subtotal ?? items.fold(0.0, (sum, i) => sum + i.total),
+      deliveryFee: deliveryFee ?? 39.0,
+      discount: discount ?? 0.0,
+      total: orderTotal,
+      orderStatus: OrderStatus.created,
+      subOrders: const [],
     );
     _orders.insert(0, order);
     return order;
@@ -145,7 +174,12 @@ class MockAddressRepository implements AddressRepository {
   @override
   Future<Address> saveAddress(Address address) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    _addresses.add(address);
+    if (_addresses.any((a) => a.id == address.id)) {
+      final index = _addresses.indexWhere((a) => a.id == address.id);
+      _addresses[index] = address;
+    } else {
+      _addresses.add(address);
+    }
     return address;
   }
 

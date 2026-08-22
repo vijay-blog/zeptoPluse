@@ -1,11 +1,1 @@
-package com.quickcart.repository;
-
-import com.quickcart.entity.Order;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import java.util.List;
-
-@Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
-}
+package com.quickcart.repository; import com.quickcart.entity.CustomerOrder; import org.springframework.data.jpa.JpaRepository; import java.util.*; public interface OrderRepository extends JpaRepository<CustomerOrder,Long>{List<CustomerOrder> findByCustomerIdOrderByCreatedAtDesc(Long id);}

@@ -1,0 +1,4 @@
+package com.quickcart.entity;
+import jakarta.persistence.*; import lombok.*; import java.time.LocalDateTime; import java.util.*;
+@Entity @Table(name="orders") @Getter @Setter @NoArgsConstructor
+public class CustomerOrder { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @Column(unique=true,nullable=false) private String orderNumber; @ManyToOne(fetch=FetchType.LAZY) private Customer customer; private double subtotal,deliveryFee,discount,totalAmount; @Enumerated(EnumType.STRING) private PaymentMethod paymentMethod; @Enumerated(EnumType.STRING) private PaymentStatus paymentStatus; @Enumerated(EnumType.STRING) private OrderStatus orderStatus; @Column(length=2000) private String deliveryAddressSnapshot; private LocalDateTime createdAt,updatedAt; @PrePersist void pre(){createdAt=LocalDateTime.now();updatedAt=createdAt;} @PreUpdate void upd(){updatedAt=LocalDateTime.now();} }

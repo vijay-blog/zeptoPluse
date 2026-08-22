@@ -69,8 +69,14 @@ class RestOrderRepository implements OrderRepository {
   RestOrderRepository({required this.apiClient});
 
   @override
-  Future<CustomerOrder> createOrder({required List<CartItem> items, required Address address, required double total}) async {
-    // Note: Authoritative totals are computed by backend. We send items and addressId/details.
+  Future<CustomerOrder> createOrder({
+    required List<CartItem> items,
+    required Address address,
+    double? subtotal,
+    double? deliveryFee,
+    double? discount,
+    required double total,
+  }) async {
     final body = {
       'addressId': address.id,
       'address': address.toJson(),
@@ -117,16 +123,22 @@ class RestOrderRepository implements OrderRepository {
       }
     }
 
+    final subtotalValue = (json['subtotal'] as num?)?.toDouble() ?? 0.0;
+    final deliveryFeeValue = (json['deliveryFee'] as num?)?.toDouble() ?? 0.0;
+    final totalValue = (json['total'] as num?)?.toDouble() ?? 0.0;
+    final discountValue = (json['discount'] as num?)?.toDouble() ?? 0.0;
+
     return CustomerOrder(
       id: json['id']?.toString() ?? 'QC0000',
       customerId: json['customerId']?.toString() ?? 'guest',
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
       items: fallbackItems,
       address: json['address']?.toString() ?? fallbackAddress,
-      subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
-      deliveryFee: (json['deliveryFee'] as num?)?.toDouble() ?? 0.0,
-      total: (json['total'] as num?)?.toDouble() ?? 0.0,
-      status: st,
+      subtotal: subtotalValue,
+      deliveryFee: deliveryFeeValue,
+      discount: discountValue,
+      total: totalValue,
+      orderStatus: st,
     );
   }
 }

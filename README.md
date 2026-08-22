@@ -1,81 +1,36 @@
-# QuickCart Customer App & Spring Boot Backend
+# ZeptoPluse Customer App
 
-QuickCart is a Hyderabad hyperlocal marketplace customer application built with **Flutter (Material 3)** and powered by a **Spring Boot 3 + MySQL** backend.
+Hyderabad-first hyperlocal marketplace customer application with Flutter + Spring Boot + MySQL.
 
----
+## Scope
+Customer shopping flow is implemented for browsing, search, categories, product details, cart, address, COD checkout, order history and order tracking.
 
-## Prerequisites
-- Java 21 JDK
-- Maven 3.x+
-- Flutter SDK (>=3.4.0)
-- MySQL Server (running locally on port 3306)
+## Run backend
+1. Install Java 21 and Maven.
+2. Make sure MySQL is running.
+3. The default database is `zeptopluse`, user `root`, password `root`.
+4. From `backend/` run:
+   `mvn spring-boot:run`
+5. Seed data is inserted on first startup.
 
----
+Environment overrides:
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
 
-## MySQL Setup
-Create the database in MySQL:
-```sql
-CREATE DATABASE quickcart CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+## Run Flutter
+Install Flutter 3.x, then from project root:
+
+```bash
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080/api/v1
 ```
-Verify credentials in `backend/src/main/resources/application.properties`:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/quickcart?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-spring.datasource.username=root
-spring.datasource.password=root
-```
 
----
+Android emulator uses `10.0.2.2` to reach the host machine. For a physical phone, use your computer's LAN IP, e.g. `http://192.168.1.10:8080/api/v1`.
 
-## Starting the Spring Boot Backend
-1. Open a terminal in `backend/`:
-   ```bash
-   cd backend
-   mvn clean test
-   mvn spring-boot:run
-   ```
-2. The database will automatically seed with categories and over 50 products on startup.
-3. API will be available at `http://localhost:8080/api/v1`.
+The app falls back to bundled sample products if the backend is temporarily unavailable, so UI testing can continue.
 
----
+## Production limitations
+Authentication/OTP, Razorpay/UPI, partner routing, inventory by partner, delivery app, admin app, maps, push notifications, and production image CDN are intentionally future phases.
 
-## Starting the Flutter Customer App
-1. Open a terminal in the root project directory:
-   ```bash
-   flutter pub get
-   flutter analyze
-   flutter test
-   ```
-2. Run on Android Emulator or Device:
-   ```bash
-   flutter run
-   ```
-   *(By default, `AppConfig` uses `http://10.0.2.2:8080` for Android Emulator localhost. For physical devices, update `AppConfig.apiBaseUrl` in `customer_app/lib/core/app_config.dart` or `lib/core/app_config.dart` to your machine's local network IP).*
-
----
-
-## Test Customer Flow
-1. **Home Screen**: Browse Hyderabad location, search bar, category pills, and 50+ items.
-2. **Categories**: View all items by category.
-3. **Product Details**: Inspect specs, pricing, and add items to cart.
-4. **Cart**: Review subtotal, delivery fee (Free for orders >= ₹499, else ₹39), and proceed to checkout.
-5. **Address**: Add/select Hyderabad delivery address.
-6. **Checkout & COD**: Place order via Cash on Delivery.
-7. **Order Success & Tracking**: View order number, grand total, and full 14-state tracking timeline.
-8. **My Orders**: Check order history and live status.
-
----
-
-## Project Architecture
-- **Backend (Modular Monolith)**:
-  - `com.quickcart.controller`
-  - `com.quickcart.service`
-  - `com.quickcart.repository`
-  - `com.quickcart.entity`
-  - `com.quickcart.dto`
-  - `com.quickcart.exception`
-- **Frontend (Flutter Clean MVVM/Provider)**:
-  - `lib/core/` (Config & API Client)
-  - `lib/models/` (Data Entities)
-  - `lib/services/` (REST Repositories)
-  - `lib/providers/` (State Management)
-  - `lib/screens/` (UI Screens)
+Medicine sales require applicable Indian legal and regulatory compliance before production use.

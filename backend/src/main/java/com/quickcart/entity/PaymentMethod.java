@@ -1,0 +1,1 @@
+package com.quickcart.entity; public enum PaymentMethod { COD, ONLINE }
